@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+maacs= read.csv("bmi_pm25_no2_sim.csv")
+str(maacs)
+# Data from = https://laqm.defra.gov.uk/public-health/pm25.html
+```
+Graficamos las variables Logpm25 y NOCTURNALSYMPT
+```{r}
+g<- ggplot(maacs, aes(logpm25,NocturnalSympt))
+g +geom_point()
+```
+Podemos agregar una linea de tendencia 
+
+```{r}
+g +geom_point()+ geom_smooth()
+```
+Podemos poner que la tendencia sea una regresion lineal
+```{r}
+g +geom_point()+ geom_smooth(method="lm")
+```
+Separamos a grafica en la variable BMICAT 
+```{r}
+g +geom_point()+ geom_smooth(method="lm")+ facet_wrap(. ~ bmicat)
+```
+```{r}
+g + geom_point(color = "steelblue", size = 4, alpha = 1/2)
+```
+```{r}
+g + geom_point(aes(color = bmicat), size = 4, alpha = 1/2)
+```
+
+```{r}
+g + geom_point(aes(color = bmicat)) +
+        labs(title = "MAACS Cohort") +
+        labs(x = expression("log " * PM[2.5]), y = "Nocturnal Symptoms")
+```
+
+```{r}
+g + geom_point(aes(color = bmicat)) + theme_bw(base_family = "Times") #https://ggplot2.tidyverse.org/reference/ggtheme.html  <- lista de themes
+```
+Agregamos un dato atípico 
+
+```{r}
+testdat <- data.frame(x = 1:100, y = rnorm(100))
+testdat[50,2] <- 100  ## agregamos un Outlier!
+g <- ggplot(testdat, aes(x = x, y = y))
+g + geom_line()
+```
+Podemos delimitar el eje Y para no ver el atipico 
+
+```{r}
+g + geom_line() + ylim(-3, 3)
+```
+El problema con el comnado ylim es que hace un subset de los datos eliminando los que no entren en el rango y quizas no queremos eliminarlo solo no mostarlo, para eso se recomienda mas el siguiente comando 
+
+
+```{r}
+p <- g + geom_line() + coord_cartesian(ylim = c(-3, 3))
+p
+```
+Podemos ver que ya no se elimina el dato .
+
+```{r}
+p + annotate("text", x = c(45,55), y = c(2,2), label = c("here1", "here2"),
+             color = c("red", "blue"))
+```
+
