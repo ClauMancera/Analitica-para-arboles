@@ -1,0 +1,206 @@
+---
+title: "Clase 3 Ejercicio"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(nycflights13)
+ls("package:nycflights13")
+```
+
+```{r}
+glimpse(airlines)
+```
+```{r}
+glimpse(airports)
+```
+
+```{r}
+glimpse(planes)
+```
+```{r}
+glimpse(flights)
+```
+
+```{r}
+glimpse(weather)
+```
+
+
+
+HISTOGRAM OF TEMPERATURE
+
+```{r}
+g <- ggplot(weather, aes(temp)) #+ scale_fill_brewer(palette = "Spectral")
+
+ 
+
+g + geom_histogram(binwidth = 5, 
+                   col="black", 
+                   size=1) +  # change binwidth
+  labs(title="Temperature") 
+```
+
+
+Dividido por mes del año:
+
+```{r}
+g + geom_histogram(aes(fill= factor(month)),
+                   binwidth = 5, 
+                   col="black", 
+                   size=1) +  # change binwidth
+  labs(title="Temperature")
+```
+
+
+DENSITY OF HUMIDITY
+```{r}
+g <- ggplot(weather, aes(humid))
+g + geom_density(aes(fill=factor(month)), alpha=0.5) + 
+    labs(title="Density plot",
+         subtitle="Humidity Grouped by months",
+         caption="Source: weather",
+         x="Humidity",
+         fill="Months of year")
+```
+
+
+```{r}
+g <- ggplot(weather, aes(origin, wind_speed))
+g + geom_boxplot(varwidth=T, fill="dodgerblue", alpha = 0.5) +
+    coord_cartesian(ylim = c(0, 45)) +
+    labs(title="Box plot",
+         subtitle="Wind Speed by Origin",
+         caption="Source: weather",
+         x="Origin",
+         y="Wind Speed")
+```
+
+
+```{r}
+g + geom_boxplot(aes(fill=factor(month))) +  scale_fill_brewer(palette = "Spectral") +
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) +
+  coord_cartesian(ylim = c(0, 45)) +
+  labs(title="Box plot",
+         subtitle="Wind Speed by Origin and month",
+         caption="Source: weather",
+         x="Origin",
+         y="Wind Speed")
+```
+
+```{r}
+g + geom_violin() +
+  coord_cartesian(ylim = c(0, 45)) +
+  labs(title="Violin plot",
+       subtitle="Wind Speed by Origin",
+         caption="Source: weather",
+         x="Origin",
+         y="Wind Speed")
+```
+
+
+```{r}
+g + geom_violin(TRIM=FALSE) + coord_flip(ylim = c(0, 45))
+```
+
+```{r}
+
+g <- ggplot(weather, aes(factor(month), wind_speed, color=month))
+g + geom_violin() +
+  coord_cartesian(ylim = c(0, 45)) +
+  labs(title="Violin plot",
+       subtitle="Wind Speed by month",
+         caption="Source: weather",
+         x="Origin",
+         y="Wind Speed")
+```
+
+```{r}
+
+g <- ggplot(weather, aes(factor(month), wind_speed, color=origin))
+g + geom_violin() +
+  coord_cartesian(ylim = c(0, 45)) +
+  labs(title="Violin plot",
+       subtitle="Wind Speed by Origin and month",
+         caption="Source: weather",
+         x="Origin",
+         y="Wind Speed")
+```
+
+```{r}
+g <- ggplot(weather, aes(factor(month), wind_speed, color=factor(month)))
+p<-g + geom_violin() +
+  coord_cartesian(ylim = c(0, 45)) +
+  labs(title="Violin plot",
+       subtitle="Wind Speed by month",
+         caption="Source: weather",
+         x="month",
+         y="Wind Speed")+ 
+         stat_summary(fun=mean, geom="point", size=2, color="red")
+p
+```
+
+```{r}
+p + geom_boxplot(width=0.1)
+```
+
+    
+https://subscription.packtpub.com/book/big_data_and_business_intelligence/9781783989065/1/ch01lvl1sec20/binning-numerical-data
+
+```{r}
+p1= weather %>%
+    mutate(grupo = case_when(hour %in% 0:5 ~ "A",
+                           hour %in% 6:11 ~ "B",
+                           hour %in% 12:17 ~ "C",
+                           TRUE ~ "D"))  %>%
+    filter(grupo== "A")
+
+p2= weather %>%
+    mutate(grupo = case_when(hour %in% 0:5 ~ "A",
+                           hour %in% 6:11 ~ "B",
+                           hour %in% 12:17 ~ "C",
+                           TRUE ~ "D")) %>%
+    filter(grupo== "B")
+
+p3= weather %>%
+    mutate(grupo = case_when(hour %in% 0:5 ~ "A",
+                           hour %in% 6:11 ~ "B",
+                           hour %in% 12:17 ~ "C",
+                           TRUE ~ "D")) %>%
+    filter(grupo== "C")
+
+p4= weather %>%
+    mutate(grupo = case_when(hour %in% 0:5 ~ "A",
+                           hour %in% 6:11 ~ "B",
+                           hour %in% 12:17 ~ "C",
+                           TRUE ~ "D")) %>%
+    filter(grupo== "D")
+
+
+g1= ggplot(p1, aes(x= temp)) + geom_histogram(binwidth = 1, color = "grey30", fill = "white") + 
+  labs(title="Hour A")
+
+g2= ggplot(p1, aes(x= temp)) + geom_histogram(binwidth = 1, color = "grey30", fill = "red") + 
+  labs(title="Hour B")
+
+g3= ggplot(p1, aes(x= temp)) + geom_histogram(binwidth = 1, color = "grey30", fill = "dodgerblue") + 
+  labs(title="Hour C")
+
+g4= ggplot(p1, aes(x= temp)) + geom_histogram(binwidth = 1, color = "grey30", fill = "green") + 
+  labs(title="Hour D")
+
+
+grid.arrange(g1, g2, g3,g4, ncol = 2, nrow= 2)
+```
+
+
+```{r}
+
+```
+
+
+
