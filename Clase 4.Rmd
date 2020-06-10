@@ -1,0 +1,203 @@
+---
+title: "Clase 4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Explanatory Data Analysis
+
+```{r}
+library(moderndive)
+?house_prices #help, database description
+```
+
+```{r}
+library(tidyverse)
+library(patchwork)
+```
+
+Steps:
+1 View Raw data
+2 Viz (ggplot)
+3 Summary statistics
+
+
+STEP 1 : View Raw Data
+```{r}
+View(house_prices)
+```
+
+```{r}
+glimpse(house_prices)
+```
+
+
+STEP 2: Viz (ggplot)
+```{r}
+
+p1 <- ggplot(house_prices, aes(x=price)) +
+    geom_histogram(binwidth = 200000, color="white")+
+    labs(x="price USD", title="House prices")
+p1
+    
+```
+
+```{r}
+p2 <- ggplot(house_prices, aes(x=sqft_living)) +
+    geom_histogram(binwidth = 500, color="white", fill= "blue")+
+    labs(x="living space (Sqrt feet)", title="House size")
+p2
+```
+
+```{r}
+p3 <- ggplot(house_prices, aes(x=condition))+
+  geom_bar(aes(fill=condition))+
+  labs(x="Condition", title="House condition")+
+  theme(legend.position = "none")
+p3
+```
+
+```{r}
+p1 + p2 + p3
+```
+
+```{r}
+
+house_prices <- house_prices %>%
+  mutate(MXN= price*22)
+
+p1_new <- ggplot(house_prices, aes(x=MXN)) +
+    geom_histogram(binwidth = 4000000, color="white")+
+    labs(x="price USD", title="House prices")
+p1_new
+    
+```
+
+```{r}
+
+house_prices <-house_prices %>%
+  mutate(sqt_meter= sqft_living*0.092903)
+
+p2_new <- ggplot(house_prices, aes(x=sqt_meter)) +
+    geom_histogram(binwidth = 40, color="white", fill= "blue")+
+    labs(x="living space (Sqrt meter)", title="House size")
+p2_new
+    
+```
+
+```{r}
+(p1_new + p2_new) /p3
+```
+
+
+STEP 3: Summarize statistics
+```{r}
+house_prices %>% 
+  summarise(mean_price = mean(MXN),
+          median_price = median(MXN),
+          sd_price = sd(MXN))
+```
+
+```{r}
+house_prices %>% 
+  summarise(mean_mts_living = mean(sqt_meter),
+          median_mts_living = median(sqt_meter),
+          sd_mts_living = sd(sqt_meter))
+```
+
+
+STEP 4: TRANSFORMATIONS (If necessary)
+Aplicamos una transforacion logaritmica
+ESto lo hacemos ya que la grafica tiee un sesgo hacia la izquierda
+
+```{r}
+house_prices_new <- house_prices %>% 
+  mutate(log10_price= log10(MXN),
+         log10_size= log10(sqt_meter))
+house_prices_new 
+```
+
+```{r}
+house_prices_new %>% 
+  select(log10_price, log10_size)
+```
+
+```{r}
+p_before <- ggplot(house_prices, aes(x=MXN)) +
+    geom_histogram(binwidth = 4000000, color="white")+
+    labs(x="price MXN", title="House prices")
+
+p_after <- ggplot(house_prices_new, aes(x=log10_price)) +
+    geom_histogram(bins = 40, color="white", fill= "red")+
+    labs(x="price MXN (log10)", title="House prices")
+
+p_before + p_after
+    
+```
+
+```{r}
+p_before_mts <- ggplot(house_prices, aes(x=sqt_meter)) +
+    geom_histogram(bins= 50, color="white")+
+    labs(x="Size sqt mts", title="House size")
+
+p_after_mts <- ggplot(house_prices_new, aes(x=log10_size)) +
+    geom_histogram(bins = 40, color="white", fill= "dodgerblue")+
+    labs(x="Size sqt mts (log10)", title="House size")
+
+p_before_mts + p_after_mts
+    
+```
+
+```{r}
+(p_after + p_after_mts)/p3
+```
+
+MODELING
+
+```{r}
+ggplot(house_prices_new, aes(x= log10_size, y = log10_price, color=condition))+
+  geom_point(alpha=01)+
+    labs(x="Size sqt mts (log10)", y= "Price MXN (log10)", title="House prices in Seattle")
+  
+```
+```{r}
+ggplot(house_prices_new, aes(x= log10_size, y = log10_price, color=condition))+
+  geom_point(alpha=01)+
+  labs(x="Size sqt mts (log10)", y= "Price MXN (log10)", title="House prices in Seattle")+
+  facet_wrap((~condition))
+  
+```
+
+Agregamos una regresion por minimos cuadrados
+```{r}
+ggplot(house_prices_new, aes(x= log10_size, y = log10_price, color=condition))+
+  geom_point(alpha=01)+
+  labs(x="Size sqt mts (log10)", y= "Price MXN (log10)", title="House prices in Seattle")+
+  facet_wrap((~condition))+
+  geom_smooth(method="lm")
+  
+```
+
+FIT REGRESION MODEL
+```{r}
+price_prediction <- lm(log10_price ~ log10_size * condition, data=house_prices_new)
+
+parameters <- get_regression_table(price_prediction)
+parameters
+```
+```{r}
+params <- parameters$estimate
+prediction <- function(params, size, indx) {
+  output <- if (indx== 1) params[1]+ params[2] * log10(size) else (params[1+indx]+params[5+indx])* log10(size)
+  return(10^(output)) # aqui regresamos a dolares
+}
+
+prediction(params,100,5 ) # prediction(params, size en sqt feet, condition of house)
+```
+
+
+#Actividad
+

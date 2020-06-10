@@ -1,0 +1,130 @@
+---
+title: "Clase 4 Actividad"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Explanatory Data Analysis
+
+```{r}
+library(moderndive)
+?house_prices #help, database description
+```
+
+```{r}
+library(tidyverse)
+library(patchwork)
+```
+
+
+```{r}
+glimpse(house_prices)
+```
+
+```{r}
+p1 <- ggplot(house_prices, aes(x=sqft_lot)) +
+    geom_histogram(binwidth = 5000, color="white", fill= "blue")+
+    labs(x="lot space (Sqrt feet)", title="House lot size")+
+    coord_cartesian(xlim = c(0, 80000))
+p1
+```
+```{r}
+p2 <- ggplot(house_prices, aes(x=factor(floors)))+
+  geom_bar(aes(fill=condition))+
+  labs(x="Floors", title="House floors")+
+  theme(legend.position = "none")
+p2
+```
+
+```{r}
+house_prices <- house_prices %>%
+  mutate(MXN= price*22, sqt_lot_meter= sqft_lot*0.092903)
+house_prices
+```
+
+```{r}
+p1_new <- ggplot(house_prices, aes(x=sqt_lot_meter)) +
+    geom_histogram(binwidth = 100, color="white", fill= "red")+
+    labs(x="lot space (sqt meters)", title="House lot size (meters)")+
+    coord_cartesian(xlim = c(0, 6000))
+p1_new
+```
+
+```{r}
+(p1 + p1_new)/ p2
+```
+
+```{r}
+house_prices_new <- house_prices %>% 
+  mutate(log10_price= log10(MXN),
+         log10_lot_size= log10(sqt_lot_meter))
+house_prices_new 
+```
+
+
+```{r}
+p_before_lot_mts <- ggplot(house_prices, aes(x=sqt_lot_meter)) +
+    geom_histogram(binwidth = 100, color="white", fill= "red")+
+    labs(x="lot space (sqt meters)", title="House lot size (meters)")+
+    coord_cartesian(xlim = c(0, 6000))
+
+p_after_lot_mts <- ggplot(house_prices_new, aes(x=log10_lot_size)) +
+    geom_histogram(binwidth = 5, color="white", fill= "blue")+
+    labs(x="lot space (sqt meters)", title="House lot size (meters)")
+
+p_before_mts + p_after_mts
+    
+```
+
+
+```{r}
+ggplot(house_prices_new, aes(x= log10_lot_size, y = log10_price, color=factor(floors)))+
+  geom_point(alpha=01)+
+    labs(x="Lot Size sqt mts (log10)", y= "Price MXN (log10)", title="House prices in Seattle")
+  
+```
+```{r}
+ggplot(house_prices_new, aes(x= log10_lot_size, y = log10_price, color=factor(floors)))+
+  geom_point(alpha=01)+
+    labs(x="Lot Size sqt mts (log10)", y= "Price MXN (log10)", title="House prices in Seattle")+
+  facet_wrap((~factor(floors)))
+```
+
+```{r}
+ggplot(house_prices_new, aes(x= log10_lot_size, y = log10_price, color=factor(floors)))+
+  geom_point(alpha=01)+
+    labs(x="Lot Size sqt mts (log10)", y= "Price MXN (log10)", title="House prices in Seattle")+
+  facet_wrap((~factor(floors)))+
+  geom_smooth(method="lm")
+```
+
+
+FIT REGRESION MODEL
+```{r}
+price_prediction <- lm(log10_price ~ log10_lot_size * factor(floors), data=house_prices_new)
+
+parameters <- get_regression_table(price_prediction)
+parameters
+```
+
+```{r}
+params <- parameters$estimate
+prediction <- function(params, lot_size, floors) {
+  output <- if (floors== 1) params[1]+ params[2] * log10(lot_size) else (params[floors*2]+params[5+(floors*2)])* log10(lot_size)
+  return(10^(output)) # aqui regresamos a dolares
+}
+
+prediction(params,1000,2 ) 
+
+
+
+```
+
+
+
+
+
+
