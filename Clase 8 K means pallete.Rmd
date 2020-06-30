@@ -1,0 +1,115 @@
+---
+title: "Clase 8 Kmeans"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Extracting dominant colours from pictures
+
+```{r}
+#install.packages("imager")
+library(imager)
+file <- "autumn.jpg"
+#file
+im <- load.image(file)
+plot(im)
+#file
+```
+
+```{r}
+library(tidyverse)
+bdf <- as.data.frame(im, wide="c")
+bdf
+```
+
+
+
+
+```{r}
+set.seed(123)
+
+# function to compute total within-cluster sum of square 
+wss <- function(k) {
+  kmeans(bdf, k, nstart = 10 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+```
+
+```{r}
+k2 <- kmeans(bdf, centers = 5, nstart = 25)
+str(k2)
+```
+
+
+```{r}
+k2$centers
+```
+
+```{r}
+C1 <- rgb(k2$centers[1,3],k2$centers[1,4],k2$centers[1,5])
+C2 <- rgb(k2$centers[2,3],k2$centers[2,4],k2$centers[2,5])
+C3 <- rgb(k2$centers[3,3],k2$centers[3,4],k2$centers[3,5])
+C4 <- rgb(k2$centers[4,3],k2$centers[4,4],k2$centers[4,5])
+C5 <- rgb(k2$centers[5,3],k2$centers[5,4],k2$centers[5,5])
+
+C1
+C2
+C3
+C4
+C5
+```
+```{r}
+function (n, name = c("Palette_mine")) 
+{
+    Palette_mine = rgb(r, g, b, maxColorValue = 255)
+    name = match.arg(name)
+    orig = eval(parse(text = name))
+    rgb = t(col2rgb(orig))
+    temp = matrix(NA, ncol = 3, nrow = n)
+    x = seq(0, 1, , length(orig))
+    xg = seq(0, 1, , n)
+    for (k in 1:3) {
+        hold = spline(x, rgb[, k], n = n)$y
+        hold[hold < 0] = 0
+        hold[hold > 255] = 255
+        temp[, k] = round(hold)
+    }
+    palette = rgb(temp[, 1], temp[, 2], temp[, 3], maxColorValue = 255)
+    palette
+}
+```
+
+
+```{r}
+barplot(c(1,1,1,1,1), col=c(C1,C2,C2,C4,C5))
+```
+```{r}
+file <- "autumn.jpg"
+im <- load.image(file)
+bdf <- as.data.frame(im, wide="c")
+
+set.seed(123)
+k2 <- kmeans(bdf, centers = 5, nstart = 25)
+C1 <- rgb(k2$centers[1,3],k2$centers[1,4],k2$centers[1,5])
+C2 <- rgb(k2$centers[2,3],k2$centers[2,4],k2$centers[2,5])
+C3 <- rgb(k2$centers[3,3],k2$centers[3,4],k2$centers[3,5])
+C4 <- rgb(k2$centers[4,3],k2$centers[4,4],k2$centers[4,5])
+C5 <- rgb(k2$centers[5,3],k2$centers[5,4],k2$centers[5,5])
+```
+
+```{r}
+file <- "autumn.jpg"
+```
+

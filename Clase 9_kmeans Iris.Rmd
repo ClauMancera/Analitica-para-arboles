@@ -1,0 +1,52 @@
+---
+title: "Clase 9 Iris"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(datasets)
+head(iris)
+```
+
+```{r}
+?iris
+```
+
+```{r}
+library(ggplot2)
+ggplot(iris, aes(Petal.Length, Petal.Width, color= Species))+geom_point()
+```
+
+```{r}
+iris_kmeans <- iris %>% 
+  select(Sepal.Length:Petal.Width)
+iris_kmeans 
+```
+
+
+```{r}
+iris_clustering <- kmeans(iris_kmeans, centers = 3, nstart = 10)
+```
+
+```{r}
+iris_clustering$centers
+
+```
+
+```{r}
+iris_clustering$cluster
+```
+```{r}
+iris_kmeans <- cbind(iris,iris_clustering$cluster)
+iris_kmeans
+```
+
+```{r}
+ggplot(iris_kmeans, aes(Petal.Length, Petal.Width,shape=Species, color= factor(iris_clustering$cluster)))+geom_point()
+```
+
+
